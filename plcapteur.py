@@ -35,13 +35,31 @@ def groupby_capteur(zones, config):
     return capteurs
 
 
-def super_recursion_of_death(zones, capteurs):
+def sort_configurations():
+    global configurations
+    temp_set = set(tuple(x) for x in configurations)
+    configurations = [list(x) for x in temp_set]
+
+
+def super_recursion_of_death(zones, capteurs, config):
     importants_plots = [zone[0] for zone in zones if len(zone) == 1]
     # Remove duplicates
     importants_plots = list(set(importants_plots))
+    #FIXME BEGIN FOR THE DEBUG
     useless_plots = capteurs.copy()
     for key in importants_plots:
         useless_plots.pop(key, None)
+    #FIXME END FOR THE DEBUG
+    if(len(useless_plots) == 0):
+        global configurations
+        configurations.append(list(capteurs.keys()))
+        sort_configurations()
+        return
+    for key in useless_plots:
+        new_list_plots = capteurs.copy()
+        new_list_plots.pop(key, None)
+        new_list_zone = groupby_zones(new_list_plots, config)
+        super_recursion_of_death(new_list_zone, new_list_plots, config)
 
 
 with open('config.json') as data_file:
@@ -60,4 +78,8 @@ print("Zones : " + str(groupby_zones(capteurs, config)))
 print("Zones : " + str(zones))
 
 print("==================")
-super_recursion_of_death(zones, capteurs)
+# Exemple énoncé
+#capteurs = {0: [6, [0, 1]], 1: [3, [1, 2]], 2: [2, [2]], 3: [6, [0, 2]]}
+#zones = groupby_zones(capteurs, config)
+super_recursion_of_death(zones, capteurs, config)
+print(configurations)
