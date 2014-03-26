@@ -1,4 +1,0 @@
-[config]
-nb_capteur=10
-nb_zone=50
-zone_par_capteur=6
