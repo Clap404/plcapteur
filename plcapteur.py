@@ -70,13 +70,11 @@ def get_configurations(zones, capteurs, config):
     # Remove duplicates
     importants_plots = list(set(importants_plots))
     if(len(importants_plots) == len(capteurs)):
-        """No plot can't be removed if we want to supervise all areas, it is an
-        elementary configuration
-        """
+        # No plot can't be removed if we want to supervise all areas, it is an
+        # elementary configuration
         global configurations
-        """Add this configuration to the configurations list (and remove
-        duplicates)
-        """
+        # Add this configuration to the configurations list (and remove
+        # duplicates)
         configurations.append(list(capteurs.keys()))
         configurations = remove_duplicates_lol(configurations)
         return
