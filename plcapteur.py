@@ -1,8 +1,9 @@
 #!/bin/python
+# -*- coding: utf-8 -*-
 import json
 import random
 from pprint import pprint
-
+from pulp import *
 
 configurations = []
 
@@ -79,7 +80,31 @@ print("Zones : " + str(zones))
 
 print("==================")
 # Exemple énoncé
-#capteurs = {0: [6, [0, 1]], 1: [3, [1, 2]], 2: [2, [2]], 3: [6, [0, 2]]}
+# capteurs = {0: [6, [0, 1]], 1: [3, [1, 2]], 2: [2, [2]], 3: [6, [0, 2]]}
 #zones = groupby_zones(capteurs, config)
 super_recursion_of_death(zones, capteurs, config)
 print(configurations)
+
+# Création du problème
+prob = LpProblem("max_time", LpMaximize)
+
+#lpvariables des configurations
+lpvars = []
+for i in configurations:
+    lpvars.append( LpVariable("C"+str(i), 0, None ) )
+
+#génération des temps de batterie
+result = groupby_capteur(configurations, config)
+for i in range(config["nb_capteur"]):
+    result[i][0] = capteurs[i][0]
+    # création de la contrainte correspondante
+    prob += lpSum([ lpvars[j] for j in result[i][1] ]) <= result[i][0]
+
+prob += lpSum(lpvars)
+
+prob.writeLP("onaunprobleme.lp")
+prob.solve(GLPK(msg=0))
+print("Status: " + LpStatus[prob.status])
+
+for i in lpvars:
+    print(i.name +" "+ str(value(i)))
