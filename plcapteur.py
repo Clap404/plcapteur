@@ -3,7 +3,7 @@ import json
 import random
 from pprint import pprint
 
-
+#TODO zone_par_caapteur
 def gen_zones(config):
     zones = []
     for i in range(config["nb_zone"]):
@@ -26,6 +26,12 @@ def groupby_capteur(zones, config):
 
 with open('config.json') as data_file:
     config = json.load(data_file)
+
+config["zone_par_capteur"] = min([
+    config["zone_par_capteur"],
+    config["nb_capteur"]
+])
+
 pprint(config)
 zones = gen_zones(config)
 capteurs = groupby_capteur(zones, config)

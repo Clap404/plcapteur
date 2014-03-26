@@ -1,5 +1,5 @@
 {
-    "nb_capteur":10,
-    "nb_zone":50,
-    "zone_par_capteur":6
+    "nb_capteur":4,
+    "nb_zone":20,
+    "zone_par_capteur":4
 }
