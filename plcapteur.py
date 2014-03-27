@@ -9,8 +9,8 @@ configurations = []
 
 
 def gen_zones(config):
-    """Randomly generate the list of plots supervising each area
-    return [[index of plots supervising the area]]
+    """Randomly generate the list of sensors supervising each area
+    return [[index of sensors supervising the area]]
     """
     zones = []
     for i in range(config["nb_zone"]):
@@ -23,7 +23,7 @@ def gen_zones(config):
 
 
 def gen_capteurs(zones, config):
-    """Generate plots from the area list and randomly generate the life time
+    """Generate sensors from the area list and randomly generate the life time
     return {life_time, [index of areas supervised]}
     """
     capteurs = groupby_capteur(zones, config)
@@ -33,8 +33,8 @@ def gen_capteurs(zones, config):
 
 
 def groupby_zones(capteurs, config):
-    """Sort the plots by area supervised
-    return [[index of plots supervising]]
+    """Sort the sensors by area supervised
+    return [[index of sensors supervising]]
     """
     zones = [[] for i in range(config["nb_zone"])]
     for capteur in capteurs:
@@ -44,7 +44,7 @@ def groupby_zones(capteurs, config):
 
 
 def groupby_capteur(zones, config):
-    """Sort the areas by plots supervising
+    """Sort the areas by sensors supervising
     return [[index of areas supervised]]
     """
     capteurs = dict()
@@ -65,14 +65,14 @@ def remove_duplicates_lol(list_to_clean):
 
 def get_configurations(zones, capteurs, config):
     """Generate the elementary configurations
-    return list of configurations : [[plots index]]
+    return list of configurations : [[sensors index]]
     """
-    importants_plots = [zone[0] for zone in zones if len(zone) == 1]
+    importants_sensors = [zone[0] for zone in zones if len(zone) == 1]
     # Remove duplicates
-    importants_plots = list(set(importants_plots))
-    if(len(importants_plots) == len(capteurs)):
-        # No plot can't be removed if we want to supervise all areas, it is an
-        # elementary configuration
+    importants_sensors = list(set(importants_sensors))
+    if(len(importants_sensors) == len(capteurs)):
+        # No sensor can't be removed if we want to supervise all areas, it is
+        # an elementary configuration
         global configurations
         # Add this configuration to the configurations list (and remove
         # duplicates)
@@ -80,13 +80,13 @@ def get_configurations(zones, capteurs, config):
         configurations = remove_duplicates_lol(configurations)
         return
     for key in capteurs:
-        # For each "unimportant" plots
-        if key not in list(importants_plots):
-            # We copy the plots list and remove this "unimportant" plot
-            new_list_plots = capteurs.copy()
-            new_list_plots.pop(key, None)
-            new_list_zone = groupby_zones(new_list_plots, config)
-            get_configurations(new_list_zone, new_list_plots, config)
+        # For each "unimportant" sensors
+        if key not in list(importants_sensors):
+            # We copy the sensors list and remove this "unimportant" sensor
+            new_list_sensors = capteurs.copy()
+            new_list_sensors.pop(key, None)
+            new_list_zone = groupby_zones(new_list_sensors, config)
+            get_configurations(new_list_zone, new_list_sensors, config)
 
 
 with open('config.json') as data_file:
@@ -97,52 +97,59 @@ config["zone_par_capteur"] = min([
     config["nb_capteur"]
 ])
 
-pprint(config)
+#pprint(config)
 
-# Generates areas and plots
-zones = gen_zones(config)
-capteurs = gen_capteurs(zones, config)
+if "capteurs" in config:
+    capteurs = eval(config["capteurs"])
+    zones = groupby_zones(capteurs, config)
+else:
+    zones = gen_zones(config)
+    capteurs = gen_capteurs(zones, config)
+
+print("")
 print("Capteurs : " + str(capteurs))
 print("Zones : " + str(zones))
 
-print("\n============================\n")
-
-# Exemple de l'énoncé
-capteurs = {0: [6, [0, 1]], 1: [3, [1, 2]], 2: [2, [2]], 3: [6, [0, 2]]}
-zones = groupby_zones(capteurs, config)
+print("\n========================================================\n")
 
 # Generate the elementary configurations
 get_configurations(zones, capteurs, config)
-print(configurations)
+
+# Print configurations
+for key in range(len(configurations)):
+    print("Configuration " + str(key + 1) + ": " + str(configurations[key]))
 
 # Creating problem…
 prob = LpProblem("max_time", LpMaximize)
 
-#lpvariables for the solver
+# lpvariables for the solver
 lpvars = []
-for i in configurations:
-    lpvars.append( LpVariable("C"+str(i), 0, None ) )
+for i in range(len(configurations)):
+    lpvars.append(LpVariable("Temps pour la configuration " + str(i + 1),
+                             0, None))
 
 # Print the linear equations
 resultList = groupby_capteur(configurations, config)
 result = dict()
 for i in range(config["nb_capteur"]):
     result[i] = [capteurs[i][0], resultList[i]]
-print(result)
+# print(result)
 
 for i in range(config["nb_capteur"]):
     # setting constraints
-    prob += lpSum([ lpvars[j] for j in result[i][1] ]) <= result[i][0]
+    prob += lpSum([lpvars[j] for j in result[i][1]]) <= result[i][0]
 
 # objective
 prob += lpSum(lpvars)
 
 # optionnal line to get the problem file
-#prob.writeLP("problemfile.lp")
+# prob.writeLP("problemfile.lp")
 prob.solve(GLPK(msg=0))
+
+print("\n\n    Résultats de GLPK :\n  =======================\n")
 print("Status: " + LpStatus[prob.status])
 
 # Display results
 for i in lpvars:
-    print(i.name +" "+ str(value(i)))
-
+    print(i.name + " " + str(value(i)))
+print("")

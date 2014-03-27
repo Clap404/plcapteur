@@ -2,6 +2,5 @@
     "nb_capteur":4,
     "nb_zone":3,
     "zone_par_capteur":4,
-    "min_time":2,
-    "max_time":5
+    "capteurs":"{0: [6, [0, 1]], 1: [3, [1, 2]], 2: [2, [2]], 3: [6, [0, 2]]}"
 }
