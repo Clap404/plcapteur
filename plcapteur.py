@@ -1,9 +1,9 @@
-#!/bin/python
+#!/bin/python2
 # -*- coding: utf-8 -*-
 import json
 import random
 from pprint import pprint
-from pulp import *
+from pulp.pulp import *
 
 configurations = []
 
